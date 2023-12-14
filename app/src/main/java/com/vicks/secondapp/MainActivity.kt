@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.horizontalScroll
+//import androidx.compose.foundation.horizontalScroll
 //import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,7 +41,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.Center
+//import androidx.compose.ui.Alignment.Companion.Center
 //import androidx.compose.ui.Alignment
 //import androidx.compose.ui.Alignment
 //import androidx.compose.ui.Alignment.Companion.Center
@@ -66,7 +66,7 @@ import com.vicks.secondapp.ui.theme.Blue30
 import com.vicks.secondapp.ui.theme.Brown20
 import com.vicks.secondapp.ui.theme.SecondAppTheme
 import com.vicks.secondapp.ui.theme.white20
-import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
+//import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,9 +84,14 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun View() {
         val scroll = rememberScrollState()
-        var email by remember { mutableStateOf(" ") }
+        var email by remember { mutableStateOf("") }
         var error by remember { mutableStateOf(" ") }
-        var password by remember { mutableStateOf(" ") }
+        var password by remember { mutableStateOf("") }
+        val range = "a..z"
+        val cap = "A..Z"
+        val special = "!..@"
+        val spec= """[..`"""
+        val spec2= """{..~"""
         Column(
             Modifier
                 .fillMaxSize()
@@ -178,16 +183,22 @@ class MainActivity : ComponentActivity() {
                             uncheckedColor = Brown20
                         )
                     )
-                    Text("I accept the Terms and Conditions", fontSize = 12.sp)
+                    Text("I accept the current Terms and Conditions", fontSize = 12.sp)
                 }
             }
 
             Button(
                 onClick = {
                     if (email.length < 10) error = "Invalid email"
-                    else if (password.length < 6) error = "Password must be at least 6 characters"
                     else if(!email.contains('@',true))  error = "Invalid email format"
-                    //else if(!password.contains())
+                    else if (password.length < 6) error = "Password must be at least 6 characters"
+                    else if(!password.contains(range)) error = "password must contain a lowercase letter"
+                    else if(!password.contains(cap)) error = "password must contain an uppercase letter"
+                    else if((!password.contains(special)) && (!password.contains(spec)) && (!password.contains(spec2))) {
+                        error = "password must contain a special character"
+                    }
+
+
                 },
                 Modifier.size(388.dp, 48.dp),
                 shape = RoundedCornerShape(8.dp),
