@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 //import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 //import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -50,6 +51,7 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 //import androidx.compose.ui.res.colorResource
 //import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -85,13 +87,12 @@ class MainActivity : ComponentActivity() {
     fun View() {
         val scroll = rememberScrollState()
         var email by remember { mutableStateOf("") }
-        var error by remember { mutableStateOf(" ") }
+        var error: String by remember { mutableStateOf(" ") }
         var password by remember { mutableStateOf("") }
-        val range = "a..z"
-        val cap = "A..Z"
-        val special = "!..@"
-        val spec= """[..`"""
-        val spec2= """{..~"""
+        val spec = "~!@#$%^&*()_-+=<>,.?/{}[]|"
+        var check by remember{ mutableStateOf(false) }
+        var bools by remember{ mutableStateOf(false) }
+        var pbool by remember { mutableStateOf(false) }
         Column(
             Modifier
                 .fillMaxSize()
@@ -112,7 +113,8 @@ class MainActivity : ComponentActivity() {
                 verticalArrangement = Arrangement.spacedBy(20.dp),
                 horizontalAlignment = CenterHorizontally
             ) {
-
+                var height by remember { mutableStateOf(0) }
+                var textFieldHeight by remember { mutableStateOf(56.dp) }
                 Text(error, color = Color.Red)
                 OutlinedTextField(
                     colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -123,11 +125,18 @@ class MainActivity : ComponentActivity() {
                             backgroundColor = white20
                         )
                     ),
+
                     value = email,
                     onValueChange = { email = it },
                     modifier = Modifier
                         .size(388.dp, 60.dp)
-                        .clip(RoundedCornerShape(4.dp)),
+                        .clip(RoundedCornerShape(4.dp))
+                        .height(textFieldHeight)
+                        .onGloballyPositioned {
+                            height = it.size.height
+                            textFieldHeight = maxOf(56.dp, height.dp)
+                        },
+                    isError = bools,
                     label = { Text("Email", fontSize = 16.sp, fontWeight = FontWeight.Medium) },
                     placeholder = { Text("Enter an email", fontWeight = FontWeight.Light) },
                     trailingIcon = {
@@ -156,6 +165,7 @@ class MainActivity : ComponentActivity() {
                             backgroundColor = white20
                         )
                     ),
+                    isError = pbool,
                     placeholder = { Text("enter a password", fontWeight = FontWeight.Light) },
                     trailingIcon = {
                         Icon(
@@ -175,8 +185,8 @@ class MainActivity : ComponentActivity() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
-                        checked = false,
-                        onCheckedChange = {},
+                        checked = check,
+                        onCheckedChange = {check = it},
                         modifier = Modifier.size(24.dp, 24.dp),
                         colors = CheckboxDefaults.colors(
                             checkedColor = Color.Green,
@@ -189,16 +199,29 @@ class MainActivity : ComponentActivity() {
 
             Button(
                 onClick = {
-                    if (email.length < 10) error = "Invalid email"
-                    else if(!email.contains('@',true))  error = "Invalid email format"
-                    else if (password.length < 6) error = "Password must be at least 6 characters"
-                    else if(!password.contains(range)) error = "password must contain a lowercase letter"
-                    else if(!password.contains(cap)) error = "password must contain an uppercase letter"
-                    else if((!password.contains(special)) && (!password.contains(spec)) && (!password.contains(spec2))) {
+                    if (email.length < 10) {
+                        error = "Invalid email"
+                        bools = true
+                    } else if (!email.contains('@', true)) {
+                        error = "Invalid email format"
+                        bools = true
+                    } else if (password.length < 6) {
+                        error = "Password must be at least 6 characters"
+                    } else if (!password.any { it.isLowerCase() }) {
+                        error = "password must contain a lowercase letter"
+                        pbool = true
+                    } else if (!password.any { it.isUpperCase() }) {
+                        error = "password must contain an uppercase letter"
+                        pbool = true
+                    } else if (!password.any { it in spec }) {
                         error = "password must contain a special character"
+                        pbool = true
+                    } else if (!check) error = "You must accept the terms and condition"
+                    else {
+                        error = ""
+                        bools = false
+                        pbool = false
                     }
-
-
                 },
                 Modifier.size(388.dp, 48.dp),
                 shape = RoundedCornerShape(8.dp),
@@ -214,10 +237,7 @@ class MainActivity : ComponentActivity() {
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Brown20),
                 modifier = Modifier.size(388.dp, 48.dp),
                 shape = RoundedCornerShape(8.dp),
-                onClick = {
-                    if (email.length < 10) error = "Invalid email"
-                    else if (password.length < 6) error = "Password must be at least 6 characters"
-                }) {
+                onClick = {}) {
                 Image(
                     painter = painterResource(id = R.drawable.google),
                     contentDescription = "Google icon",
